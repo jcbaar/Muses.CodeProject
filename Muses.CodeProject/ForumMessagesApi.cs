@@ -1,4 +1,5 @@
 ﻿using Muses.CodeProject.API.Models;
+using Muses.CodeProject.Helpers;
 using System;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
@@ -41,6 +42,26 @@ namespace Muses.CodeProject.API
         public Task<PagedData> ThreadMessages(int threadId, int page = 1)
         {
             return GetRequest<PagedData>(Constants.ForumApi_GetMessageThread + $"/{threadId}?page={page}");
+        }
+
+        /// <summary>
+        /// Just a simple stub around the Html scraper that will get us our links.
+        /// This will be replaced by a API call just as soon as one becomes available.
+        /// </summary>
+        /// <param name="page">The page number to request.</param>
+        /// <returns>The <see cref="PagedData"/> containing the requested forums.</returns>
+        public async Task<PagedData> ListForums(int page = 1)
+        {
+            PagedData pd = new PagedData();
+            pd.Items = await ForumScraperHelper.GetForumLinks();
+            pd.Pagination = new Pagination()
+            {
+                Page = 1,
+                PageSize = pd.Items.Count,
+                TotalPages = 1,
+                TotalItems = pd.Items.Count
+            };
+            return pd;
         }
     }
 }

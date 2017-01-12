@@ -39,6 +39,7 @@
     <Compile Include="ArticlesApi.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ForumMessagesApi.cs" />
+    <Compile Include="Helpers\ForumScraperHelper.cs" />
     <Compile Include="Models\BearerToken.cs" />
     <Compile Include="Models\ForumDisplayMode.cs" />
     <Compile Include="Models\ItemSummary.cs" />
