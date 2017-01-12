@@ -14,7 +14,6 @@ namespace Muses.CodeProject.API
     /// </summary>
     public class AccessToken
     {
-        private const string _baseUrl = "https://api.codeproject.com";
         private BearerToken _userToken = null;
         private BearerToken _clientToken = null;
         private string _clientId;
@@ -36,10 +35,12 @@ namespace Muses.CodeProject.API
         /// a token was not requested before or, if a token was already requested before, it
         /// has expired.
         /// </summary>
+        /// <param name="force">Set to true for forcing the Http request to get the token.
+        /// Defaults to false.</param>
         /// <returns>The client access token.</returns>
-        public async Task<BearerToken> GetAccessToken()
+        public async Task<BearerToken> GetAccessToken(bool force = false)
         {
-            if (!IsValidToken(_clientToken))
+            if (force || !IsValidToken(_clientToken))
             {
                 try
                 {
@@ -73,11 +74,13 @@ namespace Muses.CodeProject.API
         /// has expired.
         /// </summary>
         /// <param name="credential">The <see cref="NetworkCredential"/> to use to obtain the
+        /// <param name="force">Set to true for forcing the Http request to get the token.
+        /// Defaults to false.</param>
         /// user access token.</param>
         /// <returns>The user access token.</returns>
-        public async Task<BearerToken> GetAccessToken(NetworkCredential credential)
+        public async Task<BearerToken> GetAccessToken(NetworkCredential credential, bool force = false)
         {
-            if (!IsValidToken(_userToken))
+            if (force || !IsValidToken(_userToken))
             {
                 try
                 {
@@ -167,7 +170,7 @@ namespace Muses.CodeProject.API
         private HttpClient GetRequestClient()
         {
             var client = new HttpClient();
-            client.BaseAddress = new Uri(_baseUrl);
+            client.BaseAddress = new Uri(Constants.CodeProjectV1ApiUrl);
 
             // We want the response to be JSON.
             client.DefaultRequestHeaders.Accept.Clear();
