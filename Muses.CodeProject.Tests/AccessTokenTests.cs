@@ -108,6 +108,32 @@ namespace Muses.CodeProject.Tests
         }
 
         [TestMethod]
+        public async Task AccessToken_GetAccessToken_InvalidToken()
+        {
+            // Arrange
+            MockHttpMessageHandler handler = new MockHttpMessageHandler();
+            handler.Expect("https://api.codeproject.com/Token")
+                .WithHeaders("Accept", "application/json")
+                .WithFormData(new Dictionary<string, string>
+                {
+                    { "grant_type", "client_credentials" },
+                    { "client_id", "id" },
+                    { "client_secret", "secret" }
+                })
+                .Respond("application/json", "{ 'access_token': '', 'expires_in': '10000' }");
+
+            using (var token = new AccessToken(handler, "id", "secret"))
+            {
+                // Act
+                var bearer = await token.GetAccessToken();
+
+                // Assert
+                handler.VerifyNoOutstandingExpectation();
+                Assert.IsNull(bearer);
+            }
+        }
+
+        [TestMethod]
         public async Task AccessToken_GetAccessToken_User()
         {
             // Arrange
@@ -156,7 +182,7 @@ namespace Muses.CodeProject.Tests
 
         [TestMethod]
         [ExpectedException(typeof(HttpRequestException))]
-        public async Task AccessToken_GetAccessToken_Exception_Throws()
+        public async Task AccessToken_GetUserAccessToken_Exception_Throws()
         {
             // Arrange
             MockHttpMessageHandler handler = new MockHttpMessageHandler();
@@ -167,6 +193,22 @@ namespace Muses.CodeProject.Tests
             {
                 // Act and assert
                 var bearer = await token.GetAccessToken(new NetworkCredential("user", "password"));
+            }
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(HttpRequestException))]
+        public async Task AccessToken_GetClientAccessToken_Exception_Throws()
+        {
+            // Arrange
+            MockHttpMessageHandler handler = new MockHttpMessageHandler();
+            handler.Expect("https://api.codeproject.com/Token")
+                .Throw(new HttpRequestException());
+
+            using (var token = new AccessToken(handler, "id", "secret"))
+            {
+                // Act and assert
+                var bearer = await token.GetAccessToken();
             }
         }
 

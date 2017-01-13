@@ -66,86 +66,72 @@ namespace Muses.CodeProject.API
         }
 
         /// <summary>
-        /// Requests the client access token. A request to the API site is only made when
-        /// a token was not requested before or, if a token was already requested before, it
-        /// has expired.
+        /// Helper function to handle the response to a token request.
         /// </summary>
-        /// <exception cref="JsonReaderException">This is thrown when the response to the request 
-        /// is not valid json.</exception>
-        /// <exception cref="HttpRequestException">This is thrown when the request failed.</exception>
-        /// <param name="force">Set to true for forcing the Http request to get the token.
-        /// Defaults to false.</param>
-        /// <returns>The client access token.</returns>
-        public async Task<BearerToken> GetAccessToken(bool force = false)
+        /// <param name="response">The <see cref="HttpResponseMessage"/> to handle.</param>
+        /// <returns>The <see cref="BearerToken"/> or null in case of an error.</returns>
+        private async Task<BearerToken> HandleResponse(HttpResponseMessage response)
         {
-            if (force || !IsValidToken(_clientToken))
-            {
-                try
-                {
-                    var response = await _client.PostAsync("Token", GetAccessTokenRequestData(null));
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        string jsonString = await response.Content.ReadAsStringAsync();
+            BearerToken token = null;
 
-                        _clientToken = JsonConvert.DeserializeObject<BearerToken>(jsonString);
-                        _clientToken.TokenRequestedAt = DateTime.Now;
-                        if (!IsValidToken(_clientToken))
-                        {
-                            _clientToken = null;
-                        }
-                    }
-                }
-                catch (HttpRequestException)
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string jsonString = await response.Content.ReadAsStringAsync();
+
+                token = JsonConvert.DeserializeObject<BearerToken>(jsonString);
+                token .TokenRequestedAt = DateTime.Now;
+                if (!IsValidToken(token))
                 {
-                    _clientToken = null;
+                    token = null;
                 }
             }
-            return _clientToken;
+            return token;
         }
 
         /// <summary>
-        /// Requests the user access token. A request to the API site is only made when
+        /// Requests the client or user access token. A request to the API site is only made when
         /// a token was not requested before or, if a token was already requested before, it
         /// has expired.
         /// </summary>
         /// <exception cref="JsonReaderException">This is thrown when the response to the request 
         /// is not valid json.</exception>
         /// <exception cref="HttpRequestException">This is thrown when the request failed.</exception>
-        /// <param name="credential">The <see cref="NetworkCredential"/> to use to obtain the
+        /// <param name="credential">The <see cref="NetworkCredential"/> to use to obtain the user
+        /// access token. When this is null a client access token is requested.
         /// <param name="force">Set to true for forcing the Http request to get the token.
         /// Defaults to false.</param>
-        /// user access token.</param>
-        /// <returns>The user access token.</returns>
-        public async Task<BearerToken> GetAccessToken(NetworkCredential credential, bool force = false)
+        /// <returns>The user or client access token.</returns>
+        public async Task<BearerToken> GetAccessToken(NetworkCredential credential = null, bool force = false)
         {
-            if (force || !IsValidToken(_userToken))
+            var tokenCheck = credential != null ? _userToken : _clientToken;
+            if (force || !IsValidToken(tokenCheck))
             {
                 try
                 {
                     var response = await _client.PostAsync("Token", GetAccessTokenRequestData(credential));
-                    if (response.StatusCode == HttpStatusCode.OK)
+                    if (credential == null)
                     {
-                        string jsonString = await response.Content.ReadAsStringAsync();
-
-                        _userToken = JsonConvert.DeserializeObject<BearerToken>(jsonString);
-                        _userToken.TokenRequestedAt = DateTime.Now;
-                        if (!IsValidToken(_userToken))
-                        {
-                            _userToken = null;
-                        }
+                        _clientToken = await HandleResponse(response);
+                    }
+                    else
+                    {
+                        _userToken = await HandleResponse(response);
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    if (credential == null)
+                    {
+                        _clientToken = null;
                     }
                     else
                     {
                         _userToken = null;
                     }
-                }
-                catch (HttpRequestException)
-                {
-                    _userToken = null;
                     throw;
                 }
             }
-            return _userToken;
+            return credential == null ? _clientToken : _userToken;
         }
 
         /// <summary>
