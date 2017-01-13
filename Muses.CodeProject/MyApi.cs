@@ -1,4 +1,5 @@
 ﻿using Muses.CodeProject.API.Models;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Muses.CodeProject.API
@@ -14,8 +15,17 @@ namespace Muses.CodeProject.API
         /// <param name="token">The token to use for the API requests. Note that this is
         /// to be a user token. Not a client token.</param>
         public MyApi(BearerToken token) : base(token)
-        {
-        }
+        { }
+
+        /// <summary>
+        /// Constructor. Initializes an instance of the object.
+        /// </summary>
+        /// <param name="handler">The <see cref="HttpMessageHandler"/> for handling the requests.</param>
+        /// <param name="token">The token to use for the API requests. Note that this is
+        /// to be a user token. Not a client token.</param>
+        public MyApi(HttpMessageHandler handler, BearerToken token)
+            : base(handler, token)
+        { }
 
         /// <summary>
         /// Request the <see cref="UserProfile"/> belonging to the request token.

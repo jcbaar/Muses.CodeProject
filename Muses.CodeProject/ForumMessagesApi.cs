@@ -2,6 +2,7 @@
 using Muses.CodeProject.Helpers;
 using System;
 using System.Collections.Specialized;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 
@@ -18,8 +19,17 @@ namespace Muses.CodeProject.API
         /// <param name="token">The token to use for the API requests. Note that this can
         /// be either a user token or a client token.</param>
         public ForumMessagesApi(BearerToken token) : base(token)
-        {
-        }
+        { }
+
+        /// <summary>
+        /// Constructor. Initializes an instance of the object.
+        /// </summary>
+        /// <param name="handler">The <see cref="HttpMessageHandler"/> for handling the requests.</param>
+        /// <param name="token">The token to use for the API requests. Note that this is
+        /// to be a user token. Not a client token.</param>
+        public ForumMessagesApi(HttpMessageHandler handler, BearerToken token)
+            : base(handler, token)
+        { }
 
         /// <summary>
         /// Send a request to get the forum messages from the API.

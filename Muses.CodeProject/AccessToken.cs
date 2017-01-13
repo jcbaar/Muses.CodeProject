@@ -12,10 +12,11 @@ namespace Muses.CodeProject.API
     /// <summary>
     /// Class for requesting and managing client and user access token.
     /// </summary>
-    public class AccessToken
+    public class AccessToken : IDisposable
     {
-        private BearerToken _userToken = null;
-        private BearerToken _clientToken = null;
+        private HttpClient _client;
+        private BearerToken _userToken;
+        private BearerToken _clientToken;
         private string _clientId;
         private string _clientSecret;
 
@@ -26,8 +27,42 @@ namespace Muses.CodeProject.API
         /// <param name="clientSecret">The client secret to use when requesting the token.</param>
         public AccessToken(string clientId, string clientSecret)
         {
+            Initialize(null, clientId, clientSecret);
+        }
+
+        /// <summary>
+        /// Constructor. Initializes an instance of the object.
+        /// </summary>
+        /// <param name="handler">The <see cref="HttpMessageHandler"/> for handling the requests.</param>
+        /// <param name="clientId">The client access ID to use when requesting the token.</param>
+        /// <param name="clientSecret">The client secret to use when requesting the token.</param>
+        public AccessToken(HttpMessageHandler handler, string clientId, string clientSecret)
+        {
+            Initialize(handler, clientId, clientSecret);
+        }
+
+        /// <summary>
+        /// Initializes the initial state of the object.
+        /// </summary>
+        /// <exception cref="ArgumentException">Is thrown when either the client ID and/or the client 
+        /// secret are null, empty or whitespace.</exception>
+        /// <param name="handler">The <see cref="HttpMessageHandler"/> for handling the requests. Note 
+        /// that the created HttpClient will take ownership of the handler and dispose of it when 
+        /// necessary.</param>
+        /// <param name="clientId">The client access ID to use when requesting the token.</param>
+        /// <param name="clientSecret">The client secret to use when requesting the token.</param>
+        private void Initialize(HttpMessageHandler handler, string clientId, string clientSecret)
+        {
+            if (String.IsNullOrWhiteSpace(clientId)) throw new ArgumentException("A valid client ID is required.");
+            if (String.IsNullOrWhiteSpace(clientSecret)) throw new ArgumentException("A valid client secret is required.");
+
             _clientId = clientId;
             _clientSecret = clientSecret;
+            _client = handler == null ? new HttpClient() : new HttpClient(handler, true);
+
+            _client.BaseAddress = new Uri(Constants.CodeProjectV1ApiUrl);
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         /// <summary>
@@ -35,6 +70,9 @@ namespace Muses.CodeProject.API
         /// a token was not requested before or, if a token was already requested before, it
         /// has expired.
         /// </summary>
+        /// <exception cref="JsonReaderException">This is thrown when the response to the request 
+        /// is not valid json.</exception>
+        /// <exception cref="HttpRequestException">This is thrown when the request failed.</exception>
         /// <param name="force">Set to true for forcing the Http request to get the token.
         /// Defaults to false.</param>
         /// <returns>The client access token.</returns>
@@ -44,23 +82,20 @@ namespace Muses.CodeProject.API
             {
                 try
                 {
-                    using (var client = GetRequestClient())
+                    var response = await _client.PostAsync("Token", GetAccessTokenRequestData(null));
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        var response = await client.PostAsync("Token", GetAccessTokenRequestData(null));
-                        if (response.StatusCode == HttpStatusCode.OK)
-                        {
-                            string jsonString = await response.Content.ReadAsStringAsync();
+                        string jsonString = await response.Content.ReadAsStringAsync();
 
-                            _clientToken = JsonConvert.DeserializeObject<BearerToken>(jsonString);
-                            _clientToken.TokenRequestedAt = DateTime.Now;
-                            if (!IsValidToken(_clientToken))
-                            {
-                                _clientToken = null;
-                            }
+                        _clientToken = JsonConvert.DeserializeObject<BearerToken>(jsonString);
+                        _clientToken.TokenRequestedAt = DateTime.Now;
+                        if (!IsValidToken(_clientToken))
+                        {
+                            _clientToken = null;
                         }
                     }
                 }
-                catch(HttpRequestException)
+                catch (HttpRequestException)
                 {
                     _clientToken = null;
                 }
@@ -73,6 +108,9 @@ namespace Muses.CodeProject.API
         /// a token was not requested before or, if a token was already requested before, it
         /// has expired.
         /// </summary>
+        /// <exception cref="JsonReaderException">This is thrown when the response to the request 
+        /// is not valid json.</exception>
+        /// <exception cref="HttpRequestException">This is thrown when the request failed.</exception>
         /// <param name="credential">The <see cref="NetworkCredential"/> to use to obtain the
         /// <param name="force">Set to true for forcing the Http request to get the token.
         /// Defaults to false.</param>
@@ -84,24 +122,21 @@ namespace Muses.CodeProject.API
             {
                 try
                 {
-                    using (var client = GetRequestClient())
+                    var response = await _client.PostAsync("Token", GetAccessTokenRequestData(credential));
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        var response = await client.PostAsync("Token", GetAccessTokenRequestData(credential));
-                        if (response.StatusCode == HttpStatusCode.OK)
-                        {
-                            string jsonString = await response.Content.ReadAsStringAsync();
+                        string jsonString = await response.Content.ReadAsStringAsync();
 
-                            _userToken = JsonConvert.DeserializeObject<BearerToken>(jsonString);
-                            _userToken.TokenRequestedAt = DateTime.Now;
-                            if (!IsValidToken(_userToken))
-                            {
-                                _userToken = null;
-                            }
-                        }
-                        else
+                        _userToken = JsonConvert.DeserializeObject<BearerToken>(jsonString);
+                        _userToken.TokenRequestedAt = DateTime.Now;
+                        if (!IsValidToken(_userToken))
                         {
                             _userToken = null;
                         }
+                    }
+                    else
+                    {
+                        _userToken = null;
                     }
                 }
                 catch (HttpRequestException)
@@ -132,17 +167,12 @@ namespace Muses.CodeProject.API
         /// Creates the post data for requesting either a client access token or
         /// a user access token.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Is thrown when either the client ID and/or the client 
-        /// secret are null, empty or whitespace.</exception>
         /// <param name="credential">The <see cref="NetworkCredential"/> with the user credentials
         /// when requesting post data for requesting a user access token. This should be null when
         /// requesting post data for a client access token.</param>
         /// <returns>The <see cref="FormUrlEncodedContent"/> containing the post data.</returns>
         private FormUrlEncodedContent GetAccessTokenRequestData(NetworkCredential credential)
         {
-            if (String.IsNullOrWhiteSpace(_clientId)) throw new InvalidOperationException("A valid client ID is required.");
-            if (String.IsNullOrWhiteSpace(_clientSecret)) throw new InvalidOperationException("A valid client secret is required.");
-
             // Build up the data to POST.
             List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
 
@@ -163,19 +193,26 @@ namespace Muses.CodeProject.API
             return new FormUrlEncodedContent(postData);
         }
 
-        /// <summary>
-        /// Creates a <see cref="HttpClient"/> ready for requesting the access token.
-        /// </summary>
-        /// <returns>The created and configured <see cref="HttpClient"/></returns>
-        private HttpClient GetRequestClient()
-        {
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(Constants.CodeProjectV1ApiUrl);
+        #region IDisposable Support
+        private bool _disposedValue = false;
 
-            // We want the response to be JSON.
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return client;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _client.Dispose();
+                }
+
+                _disposedValue = true;
+            }
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }

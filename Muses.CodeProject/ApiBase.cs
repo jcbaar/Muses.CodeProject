@@ -10,9 +10,10 @@ using System.Threading.Tasks;
 
 namespace Muses.CodeProject.API
 {
-    public class ApiBase
+    public class ApiBase : IDisposable
     {
         private BearerToken _token; // The token to use for the API requests.
+        private HttpClient _client; // The HttpClient to use for the requests.
 
         /// <summary>
         /// Constructor. Initializes an instance of the object.
@@ -20,9 +21,45 @@ namespace Muses.CodeProject.API
         /// <param name="token">The token to use for the API requests</param>
         public ApiBase(BearerToken token)
         {
+            Initialize(null, token);
+        }
+
+        /// <summary>
+        /// Constructor. Initializes an instance of the object.
+        /// </summary>
+        /// <param name="handler">The <see cref="HttpMessageHandler"/> for handling the requests.</param>
+        /// <param name="token">The token to use for the API requests</param>
+        public ApiBase(HttpMessageHandler handler, BearerToken token)
+        {
+            Initialize(handler, token);
+        }
+
+        /// <summary>
+        /// Initializes the initial state of the object.
+        /// </summary>
+        /// <param name="handler">The <see cref="HttpMessageHandler"/> for handling the requests. Note 
+        /// that the created HttpClient will take ownership of the handler and dispose of it when 
+        /// necessary.</param>
+        /// <param name="token">The token to use for the API requests</param>
+        private void Initialize(HttpMessageHandler handler, BearerToken token)
+        {
+            _client = handler == null ? new HttpClient() : new HttpClient(handler, true);
+            _client.BaseAddress = new Uri(Constants.CodeProjectV1ApiUrl);
+
             RequestToken = token;
             HttpStatusCode = HttpStatusCode.OK;
-            HttpStatusMessage = String.Empty;
+            HttpStatusMessage = HttpStatusCode.ToString();
+        }
+
+        /// <summary>
+        /// (Re-)sets the headers for the HttpClient.
+        /// </summary>
+        private void SetClientHeaders()
+        {
+            _client.DefaultRequestHeaders.Clear();
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + RequestToken.Token);
         }
 
         /// <summary>
@@ -42,6 +79,7 @@ namespace Muses.CodeProject.API
                     throw new InvalidOperationException("Token value must have a valid contents.");
                 }
                 _token = value;
+                SetClientHeaders();
             }
         }
 
@@ -80,30 +118,15 @@ namespace Muses.CodeProject.API
         /// a non-OK response was returned.</returns>
         protected async Task<T> GetRequest<T>(string url) where T : new()
         {
-            try
+            HttpResponseMessage response = await _client.GetAsync(url);
+            HttpStatusCode = response.StatusCode;
+            HttpStatusMessage = response.ReasonPhrase;
+
+            if (response.IsSuccessStatusCode)
             {
-                using (var client = new HttpClient())
-                {
-                    client.BaseAddress = new Uri(Constants.CodeProjectV1ApiUrl);
-
-                    client.DefaultRequestHeaders.Accept.Clear();
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _token.Token);
-
-                    HttpResponseMessage response = await client.GetAsync(url);
-                    HttpStatusCode = response.StatusCode;
-                    HttpStatusMessage = response.ReasonPhrase;
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string jsonString = await response.Content.ReadAsStringAsync();
-                        var responseData = JsonConvert.DeserializeObject<T>(jsonString);
-                        return responseData;
-                    }
-                }
-            }
-            catch (HttpRequestException)
-            {
+                string jsonString = await response.Content.ReadAsStringAsync();
+                var responseData = JsonConvert.DeserializeObject<T>(jsonString);
+                return responseData;
             }
             return default(T);
         }
@@ -119,5 +142,27 @@ namespace Muses.CodeProject.API
         {
             return await GetRequest<PagedData>($"{dataUrl}?page={pageNr}");
         }
+
+        #region IDisposable Support
+        private bool _disposedValue = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _client.Dispose();
+                }
+
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }
