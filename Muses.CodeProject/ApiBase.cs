@@ -10,10 +10,21 @@ using System.Threading.Tasks;
 
 namespace Muses.CodeProject.API
 {
+    /// <summary>
+    /// Base class for the differen API classes. This class handles communication
+    /// with the codeproject API. Internally this class uses the <see cref="HttpClient"/>
+    /// class and therefore has the IDisposable interface implemented.
+    /// 
+    /// Note however that the same rules apply for the API classes as for the <see cref="HttpClient"/>
+    /// class. Normally you will only need to instantiate an API class once and use that
+    /// throughout the application lifetime instead of instantiating one for each call
+    /// to the API.
+    /// </summary>
     public class ApiBase : IDisposable
     {
         private BearerToken _token; // The token to use for the API requests.
-        private HttpClient _client; // The HttpClient to use for the requests.
+        private static HttpClient _client; // The HttpClient to use for the requests.
+        private static object _lock = new object();
 
         /// <summary>
         /// Constructor. Initializes an instance of the object.
@@ -43,12 +54,18 @@ namespace Muses.CodeProject.API
         /// <param name="token">The token to use for the API requests</param>
         private void Initialize(HttpMessageHandler handler, BearerToken token)
         {
-            _client = handler == null ? new HttpClient() : new HttpClient(handler, true);
-            _client.BaseAddress = new Uri(Constants.CodeProjectV1ApiUrl);
-
-            RequestToken = token;
             HttpStatusCode = HttpStatusCode.OK;
             HttpStatusMessage = HttpStatusCode.ToString();
+
+            lock (_lock)
+            {
+                if (_client == null)
+                {
+                    _client = handler == null ? new HttpClient() : new HttpClient(handler, true);
+                    _client.BaseAddress = new Uri(Constants.CodeProjectV1ApiUrl);
+                }
+                RequestToken = token;
+            }
         }
 
         /// <summary>
@@ -79,7 +96,10 @@ namespace Muses.CodeProject.API
                     throw new InvalidOperationException("Token value must have a valid contents.");
                 }
                 _token = value;
-                SetClientHeaders();
+                lock (_lock)
+                {
+                    SetClientHeaders();
+                }
             }
         }
 
@@ -152,7 +172,11 @@ namespace Muses.CodeProject.API
             {
                 if (disposing)
                 {
-                    _client.Dispose();
+                    lock (_lock)
+                    {
+                        _client.Dispose();
+                        _client = null;
+                    }
                 }
 
                 _disposedValue = true;

@@ -72,23 +72,25 @@ namespace Muses.CodeProject.Tests
         public void ApiBase_Is_IDisposable()
         {
             // Arrange
-            ApiBase api = new ApiBase(_dummy);
+            using (ApiBase api = new ApiBase(_dummy))
+            {
+                // Act
+                var disposable = api as IDisposable;
 
-            // Act
-            var disposable = api as IDisposable;
-
-            // Assert
-            Assert.IsNotNull(disposable);
+                // Assert
+                Assert.IsNotNull(disposable);
+            }
         }
 
         [TestMethod]
         public void ApiBase_InputToken_Equals_UsedToken()
         {
             // Arrange and act
-            ApiBase api = new ApiBase(_dummy);
-
-            // Assert
-            Assert.AreEqual(api.RequestToken, _dummy);
+            using (ApiBase api = new ApiBase(_dummy))
+            {
+                // Assert
+                Assert.AreEqual(api.RequestToken, _dummy);
+            }
         }
 
         [TestMethod]
@@ -96,13 +98,14 @@ namespace Muses.CodeProject.Tests
         public void ApiBase_TokenInvalid_Throws()
         {
             // Arrange
-            ApiBase api = new ApiBase(_dummy);
-
-            // Act and assert
-            api.RequestToken = new BearerToken()
+            using (ApiBase api = new ApiBase(_dummy))
             {
-                Token = "  \t \n"
-            };
+                // Act and assert
+                api.RequestToken = new BearerToken()
+                {
+                    Token = "  \t \n"
+                };
+            }
         }
 
         [TestMethod]
@@ -110,13 +113,14 @@ namespace Muses.CodeProject.Tests
         public void ApiBase_TokenNull_Throws()
         {
             // Arrange
-            ApiBase api = new ApiBase(_dummy);
-
-            // Act and assert
-            api.RequestToken = new BearerToken()
+            using (ApiBase api = new ApiBase(_dummy))
             {
-                Token = null
-            };
+                // Act and assert
+                api.RequestToken = new BearerToken()
+                {
+                    Token = null
+                };
+            }
         }
 
         [TestMethod]
@@ -124,42 +128,46 @@ namespace Muses.CodeProject.Tests
         public void ApiBase_InvalidEmpty_Throws()
         {
             // Arrange
-            ApiBase api = new ApiBase(_dummy);
-
-            // Act and assert
-            api.RequestToken = new BearerToken()
+            using (ApiBase api = new ApiBase(_dummy))
             {
-                Token = ""
-            };
+                // Act and assert
+                api.RequestToken = new BearerToken()
+                {
+                    Token = ""
+                };
+            }
         }
 
         [TestMethod]
         public void ApiBase_SetToken_ChangesConstructorToken()
         {
             // Arrange
-            ApiBase api = new ApiBase(_dummy);
-            var newToken = new BearerToken()
+            using (ApiBase api = new ApiBase(_dummy))
             {
-                Token = "A brand new token",
-                ExpiresIn = 500
-            };
+                var newToken = new BearerToken()
+                {
+                    Token = "A brand new token",
+                    ExpiresIn = 500
+                };
 
-            // Act
-            api.RequestToken = newToken;
+                // Act
+                api.RequestToken = newToken;
 
-            // Assert
-            Assert.AreEqual(newToken, api.RequestToken);
+                // Assert
+                Assert.AreEqual(newToken, api.RequestToken);
+            }
         }
 
         [TestMethod]
         public void ApiBase_Construct_IsOk()
         {
             // Arrange and act
-            ApiBase api = new ApiBase(_dummy);
-
-            // Assert
-            Assert.AreEqual(HttpStatusCode.OK, api.HttpStatusCode);
-            Assert.AreEqual("OK", api.HttpStatusMessage);
+            using (ApiBase api = new ApiBase(_dummy))
+            {
+                // Assert
+                Assert.AreEqual(HttpStatusCode.OK, api.HttpStatusCode);
+                Assert.AreEqual("OK", api.HttpStatusMessage);
+            }
         }
 
         [TestMethod]
@@ -181,6 +189,8 @@ namespace Muses.CodeProject.Tests
                 var result = await api.Send();
 
                 // Assert
+                Assert.AreEqual(HttpStatusCode.OK, api.HttpStatusCode, $"{api.HttpStatusCode}");
+                Assert.IsNotNull(result);
                 Assert.AreEqual(result.message, "ok");
                 handler.VerifyNoOutstandingExpectation();
             }
