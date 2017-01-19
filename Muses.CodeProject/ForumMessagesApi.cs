@@ -62,16 +62,7 @@ namespace Muses.CodeProject.API
         /// <returns>The <see cref="PagedData"/> containing the requested forums.</returns>
         public async Task<PagedData> ListForums(int page = 1)
         {
-            PagedData pd = new PagedData();
-            pd.Items = await ForumScraperHelper.GetForumLinks();
-            pd.Pagination = new Pagination()
-            {
-                Page = 1,
-                PageSize = pd.Items.Count,
-                TotalPages = 1,
-                TotalItems = pd.Items.Count
-            };
-            return pd;
+            return await ForumScraperHelper.GetForumLinks();
         }
     }
 }

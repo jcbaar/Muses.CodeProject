@@ -24,8 +24,8 @@ namespace Muses.CodeProject.Helpers
         /// <summary>
         /// Temporary helper to scrape forum links of the
         /// </summary>
-        /// <returns>The list with scraped forums or null in case of a exception.</returns>
-        public static async Task<List<ItemSummary>> GetForumLinks()
+        /// <returns>The <see cref="PageData"/> object with the forums or null in case of an error.</returns>
+        public static async Task<PagedData> GetForumLinks()
         {
             try
             {
@@ -40,7 +40,18 @@ namespace Muses.CodeProject.Helpers
                     if (response.IsSuccessStatusCode)
                     {
                         string content = await response.Content.ReadAsStringAsync();
-                        return Find(content);
+                        var data = Find(content);
+                        return new PagedData
+                        {
+                            Pagination = new Pagination
+                            {
+                                Page = 1,
+                                PageSize = data.Count,
+                                TotalItems = data.Count,
+                                TotalPages = 1
+                            },
+                            Items = data
+                        };
                     }
                 }
             }
