@@ -271,5 +271,25 @@ namespace Muses.CodeProject.Tests
                 var data = await api.Send();
             }
         }
+
+        [TestMethod]
+        public async Task ApiBase_Request_Sets_StatusCodeAndMessage()
+        {
+            // Arrange
+            MockHttpMessageHandler handler = new MockHttpMessageHandler();
+            handler.Expect("https://api.codeproject.com/v1/Test")
+                .Respond(HttpStatusCode.InternalServerError);
+
+            using (var api = new DummyApi(handler, _dummy))
+            {
+                // Act
+                var data = await api.Send();
+
+                // Assert
+                Assert.IsNull(data);
+                Assert.AreEqual(HttpStatusCode.InternalServerError, api.HttpStatusCode);
+                Assert.AreEqual("Internal Server Error", api.HttpStatusMessage);
+            }
+        }
     }
 }
