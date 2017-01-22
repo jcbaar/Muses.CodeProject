@@ -145,8 +145,11 @@ namespace Muses.CodeProject.API
             if (response.IsSuccessStatusCode)
             {
                 string jsonString = await response.Content.ReadAsStringAsync();
-                var responseData = JsonConvert.DeserializeObject<T>(jsonString);
-                return responseData;
+                if (!String.IsNullOrWhiteSpace(jsonString))
+                {
+                    var responseData = JsonConvert.DeserializeObject<T>(jsonString);
+                    return responseData;
+                }
             }
             return default(T);
         }
