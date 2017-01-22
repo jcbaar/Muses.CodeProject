@@ -138,20 +138,22 @@ namespace Muses.CodeProject.API
         /// a non-OK response was returned.</returns>
         protected async Task<T> GetRequest<T>(string url) where T : new()
         {
-            HttpResponseMessage response = await _client.GetAsync(url);
-            HttpStatusCode = response.StatusCode;
-            HttpStatusMessage = response.ReasonPhrase;
-
-            if (response.IsSuccessStatusCode)
+            using (var response = await _client.GetAsync(url))
             {
-                string jsonString = await response.Content.ReadAsStringAsync();
-                if (!String.IsNullOrWhiteSpace(jsonString))
+                HttpStatusCode = response.StatusCode;
+                HttpStatusMessage = response.ReasonPhrase;
+
+                if (response.IsSuccessStatusCode)
                 {
-                    var responseData = JsonConvert.DeserializeObject<T>(jsonString);
-                    return responseData;
+                    string jsonString = await response.Content.ReadAsStringAsync();
+                    if (!String.IsNullOrWhiteSpace(jsonString))
+                    {
+                        var responseData = JsonConvert.DeserializeObject<T>(jsonString);
+                        return responseData;
+                    }
                 }
+                return default(T);
             }
-            return default(T);
         }
 
         /// <summary>
