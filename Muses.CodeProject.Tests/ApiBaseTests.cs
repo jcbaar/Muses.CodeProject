@@ -171,6 +171,17 @@ namespace Muses.CodeProject.Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void ApiBase_Construct_NullToken_Throws()
+        {
+            // Arrange, act and assert
+            using (ApiBase api = new ApiBase(null))
+            {
+
+            }
+        }
+
+        [TestMethod]
         public async Task ApiBase_RequestHeaders_AreOk()
         {
             // Arrange

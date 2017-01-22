@@ -51,9 +51,16 @@ namespace Muses.CodeProject.API
         /// <param name="handler">The <see cref="HttpMessageHandler"/> for handling the requests. Note 
         /// that the created HttpClient will take ownership of the handler and dispose of it when 
         /// necessary.</param>
+        /// <exception cref="InvalidOperationException">This is thrown when the token is either null or the
+        /// token value is null or empty.</exception>
         /// <param name="token">The token to use for the API requests</param>
         private void Initialize(HttpMessageHandler handler, BearerToken token)
         {
+            if (token == null || String.IsNullOrWhiteSpace(token.Token))
+            {
+                throw new InvalidOperationException("Token value must have a valid contents.");
+            }
+
             HttpStatusCode = HttpStatusCode.OK;
             HttpStatusMessage = HttpStatusCode.ToString();
 
