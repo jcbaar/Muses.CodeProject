@@ -171,6 +171,25 @@ namespace Muses.CodeProject.Tests
         }
 
         [TestMethod]
+        public void ApiBase_Construct_ReferenceCount_Dispose()
+        {
+            // Arrange and act.
+            using (var a1 = new ApiBase(_dummy))
+            {
+                using (var a2 = new ApiBase(_dummy))
+                {
+                    using (var a3 = new ApiBase(_dummy))
+                    {
+                        Assert.IsFalse(ApiBase.IsDisposed);
+                    }
+                    Assert.IsFalse(ApiBase.IsDisposed);
+                }
+                Assert.IsFalse(ApiBase.IsDisposed);
+            }
+            Assert.IsTrue(ApiBase.IsDisposed);
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void ApiBase_Construct_NullToken_Throws()
         {

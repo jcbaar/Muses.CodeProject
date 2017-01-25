@@ -41,6 +41,16 @@ namespace Muses.CodeProject.Helpers
                     {
                         string content = await response.Content.ReadAsStringAsync();
                         var data = Find(content);
+
+                        // Well... Hmmm. The lounge does not have a '/Forums/' link on the
+                        // forumsd overview page...
+                        data.Insert(0, new ItemSummary()
+                        {
+                            Title = "The Lounge",
+                            Id = "1159",
+                            WebsiteLink = new Uri("https://www.codeproject.com/Lounge.aspx")
+                        });
+
                         return new PagedData
                         {
                             Pagination = new Pagination

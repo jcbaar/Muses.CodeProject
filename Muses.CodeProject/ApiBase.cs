@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Muses.CodeProject.API
@@ -24,7 +25,8 @@ namespace Muses.CodeProject.API
     {
         private BearerToken _token; // The token to use for the API requests.
         private static HttpClient _client; // The HttpClient to use for the requests.
-        private static object _lock = new object();
+        private static int _clientCount; // The HttpClient is reference counted.
+        private static object _lock = new object(); // Synchronized access for the static fields.
 
         /// <summary>
         /// Constructor. Initializes an instance of the object.
@@ -37,6 +39,8 @@ namespace Muses.CodeProject.API
 
         /// <summary>
         /// Constructor. Initializes an instance of the object.
+        /// Note: This constructor mainly exists for testing purposes. You normally 
+        /// do not need to use this constructor.
         /// </summary>
         /// <param name="handler">The <see cref="HttpMessageHandler"/> for handling the requests.</param>
         /// <param name="token">The token to use for the API requests</param>
@@ -71,6 +75,12 @@ namespace Muses.CodeProject.API
                     _client = handler == null ? new HttpClient() : new HttpClient(handler, true);
                     _client.BaseAddress = new Uri(Constants.CodeProjectV1ApiUrl);
                 }
+
+                // The HttpClient instance is created once and used for all the remaining
+                // ApiBase instances created. Therefore the instantiation is reference counted
+                // so that we only dispose of the HttpClient once the last ApiBase instance
+                // is disposed of.
+                Interlocked.Add(ref _clientCount, 1);
                 RequestToken = token;
             }
         }
@@ -176,22 +186,41 @@ namespace Muses.CodeProject.API
         }
 
         #region IDisposable Support
-        private bool _disposedValue = false;
+        /// <summary>
+        /// Gets the disposed state of the ApiBase HttpClient. When there are still
+        /// un-disposed ApiBase instances present this will return false. Once all
+        /// ApiBase instances are properly disposed of (or no instances where yet
+        /// created) this will return true.
+        /// </summary>
+        public static bool IsDisposed
+        {
+            get
+            {
+                return Interlocked.CompareExchange(ref _clientCount, 0, 0) == 0;
+            }
+        }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if(!disposing)
             {
-                if (disposing)
-                {
-                    lock (_lock)
-                    {
-                        _client.Dispose();
-                        _client = null;
-                    }
-                }
+                return;
+            }
 
-                _disposedValue = true;
+            // Only really dispose of the HttpClient when the reference count
+            // reaches 0.
+            int current = Interlocked.Decrement(ref _clientCount);
+            if(current > 0)
+            {
+                return;
+            }
+
+            lock (_lock)
+            {
+                // The null-conditional operator is probably being a bit paranoid
+                // since the _client variable can not be null at this point...
+                _client?.Dispose();
+                _client = null;
             }
         }
 

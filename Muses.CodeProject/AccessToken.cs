@@ -32,6 +32,8 @@ namespace Muses.CodeProject.API
 
         /// <summary>
         /// Constructor. Initializes an instance of the object.
+        /// Note: This constructor mainly exists for testing purposes. You normally 
+        /// do not need to use this constructor.
         /// </summary>
         /// <param name="handler">The <see cref="HttpMessageHandler"/> for handling the requests.</param>
         /// <param name="clientId">The client access ID to use when requesting the token.</param>
