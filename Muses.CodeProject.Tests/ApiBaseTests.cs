@@ -32,7 +32,7 @@ namespace Muses.CodeProject.Tests
         /// <summary>
         /// Simple dummy API for testing the <see cref="ApiBase"/> 
         /// </summary>
-        public class DummyApi : ApiBase, IDisposable
+        public class DummyApi : ApiBase
         {
             public DummyApi(HttpMessageHandler handler, BearerToken token)
                 : base(handler, token)
