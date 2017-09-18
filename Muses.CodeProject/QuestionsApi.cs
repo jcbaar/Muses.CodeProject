@@ -1,6 +1,7 @@
 ﻿using Muses.CodeProject.API.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ namespace Muses.CodeProject.API
     /// <summary>
     /// Class for accessing the CodeProject "Questions API"
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class QuestionsApi : ApiBase
     {
         /// <summary>

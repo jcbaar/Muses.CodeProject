@@ -1,6 +1,7 @@
 ﻿using Muses.CodeProject.API.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
@@ -16,6 +17,7 @@ namespace Muses.CodeProject.Helpers
     /// This class is removed just as soon as the API provides us with a method to list the
     /// forums.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     internal static class ForumScraperHelper
     {
         private static string _baseUrl = "https://www.codeproject.com/";

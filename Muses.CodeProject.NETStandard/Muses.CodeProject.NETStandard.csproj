@@ -51,6 +51,9 @@
     <Compile Include="..\Muses.CodeProject\Constants.cs">
       <Link>Constants.cs</Link>
     </Compile>
+    <Compile Include="..\Muses.CodeProject\ExcludeFromCodeCoverage.cs">
+      <Link>ExcludeFromCodeCoverage.cs</Link>
+    </Compile>
     <Compile Include="..\Muses.CodeProject\ForumMessagesApi.cs">
       <Link>ForumMessagesApi.cs</Link>
     </Compile>

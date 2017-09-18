@@ -38,6 +38,7 @@
     <Compile Include="ApiBase.cs" />
     <Compile Include="ArticlesApi.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="ExcludeFromCodeCoverage.cs" />
     <Compile Include="ForumMessagesApi.cs" />
     <Compile Include="Helpers\ForumScraperHelper.cs" />
     <Compile Include="Models\BearerToken.cs" />

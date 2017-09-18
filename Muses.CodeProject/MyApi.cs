@@ -1,4 +1,5 @@
 ﻿using Muses.CodeProject.API.Models;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -7,6 +8,7 @@ namespace Muses.CodeProject.API
     /// <summary>
     /// Class for accessing the CodeProject "My API"
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class MyApi : ApiBase
     {
         /// <summary>

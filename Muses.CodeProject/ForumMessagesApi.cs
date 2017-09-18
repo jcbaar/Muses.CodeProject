@@ -2,6 +2,7 @@
 using Muses.CodeProject.Helpers;
 using System;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -11,6 +12,7 @@ namespace Muses.CodeProject.API
     /// <summary>
     /// Class for accessing the CodeProject "ForumMessages API"
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class ForumMessagesApi : ApiBase
     {
         /// <summary>

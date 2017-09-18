@@ -1,9 +1,12 @@
-﻿namespace Muses.CodeProject.API
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Muses.CodeProject.API
 {
     /// <summary>
     /// Constant strings used by the API classes.
     /// TODO: Move them into the API specific classes?
     /// </summary>
+    [ExcludeFromCodeCoverage]
     internal static class Constants
     {
         // CodeProject API base URL.
