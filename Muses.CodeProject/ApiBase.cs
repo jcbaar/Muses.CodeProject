@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Muses.CodeProject.API
 {
     /// <summary>
-    /// Base class for the differen API classes. This class handles communication
+    /// Base class for the different API classes. This class handles communication
     /// with the codeproject API. Internally this class uses the <see cref="HttpClient"/>
     /// class and therefore has the IDisposable interface implemented.
     /// 
