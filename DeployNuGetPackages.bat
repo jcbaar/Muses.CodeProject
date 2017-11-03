@@ -1,0 +1,1 @@
+nuget init Muses.CodeProject\bin\Release\ D:\NuGet\LocalPackages
