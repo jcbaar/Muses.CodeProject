@@ -6,6 +6,9 @@
     <Copyright>Copyright (C) 2017 Jan van den Baard</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>A small library wrapper for the CodeProject API (https://api.codeproject.com)</Description>
+    <PackageReleaseNotes>Version 1.0.0
+*************
+Initial version.</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
