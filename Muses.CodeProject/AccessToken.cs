@@ -100,7 +100,7 @@ namespace Muses.CodeProject.API
         /// <exception cref="HttpRequestException">This is thrown when the request failed.</exception>
         /// <param name="credential">The <see cref="NetworkCredential"/> to use to obtain the user
         /// access token. When this is null a client access token is requested.
-        /// <param name="force">Set to true for forcing the Http request to get the token.
+        /// <param name="force">Set to true for forcing the HTTP request to get the token.
         /// Defaults to false.</param>
         /// <returns>The user or client access token.</returns>
         public async Task<BearerToken> GetAccessToken(NetworkCredential credential = null, bool force = false)

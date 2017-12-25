@@ -14,7 +14,7 @@ namespace Muses.CodeProject.API.Models
 
         /// <summary>
         /// Gets or set the user name. Usually a 
-        /// 'clean', html stripped, version of DisplayName.
+        /// 'clean', HTML stripped, version of DisplayName.
         /// </summary>
         public string UserName { get; set; }
 
@@ -25,7 +25,7 @@ namespace Muses.CodeProject.API.Models
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// Gets or sets the url to the user's avatar image.
+        /// Gets or sets the URL to the user's avatar image.
         /// </summary>
         public Uri Avatar { get; set; }
 

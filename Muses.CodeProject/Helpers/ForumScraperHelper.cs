@@ -44,8 +44,8 @@ namespace Muses.CodeProject.Helpers
                         string content = await response.Content.ReadAsStringAsync();
                         var data = Find(content);
 
-                        // Well... Hmmm. The lounge does not have a '/Forums/' link on the
-                        // forumsd overview page...
+                        // Well... The lounge does not have a '/Forums/' link on the
+                        // forums overview page...
                         data.Insert(0, new ItemSummary()
                         {
                             Title = "The Lounge",
@@ -74,10 +74,10 @@ namespace Muses.CodeProject.Helpers
         }
 
         /// <summary>
-        /// Simple Html scraper build from the sample at:
+        /// Simple HTML scraper build from the sample at:
         /// https://www.dotnetperls.com/scraping-html
         /// </summary>
-        /// <param name="htmlContent">The Html content to scrape.</param>
+        /// <param name="htmlContent">The HTML content to scrape.</param>
         /// <returns>A list of <see cref="ItemSummary"/> containing the found forum links.</returns>
         public static List<ItemSummary> Find(string htmlContent)
         {
@@ -95,7 +95,7 @@ namespace Muses.CodeProject.Helpers
                 if (hrefs.Success)
                 {
                     // We are only interested in the links starting with '/Forums/'. All others
-                    // are simply ingnored.
+                    // are simply ignored.
                     string href = hrefs.Groups[1].Value;
                     if (href.StartsWith("/Forums/", StringComparison.CurrentCultureIgnoreCase) == false)
                     {

@@ -57,7 +57,7 @@ namespace Muses.CodeProject.API
         }
 
         /// <summary>
-        /// Just a simple stub around the Html scraper that will get us our links.
+        /// Just a simple stub around the HTML scraper that will get us our links.
         /// This will be replaced by a API call just as soon as one becomes available.
         /// </summary>
         /// <param name="page">The page number to request.</param>
