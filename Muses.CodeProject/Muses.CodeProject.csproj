@@ -54,6 +54,16 @@ Initial version.</PackageReleaseNotes>
     </PackageReference>
   </ItemGroup>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="del $(ProjectDir)bin\Release\*.nupkg 2&gt; nul" />
+    <Exec Command="del $(ProjectDir)bin\Release\*.nupkg 2&gt; nul&#xD;&#xA;exit /B 0" />
   </Target>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
 </Project>
